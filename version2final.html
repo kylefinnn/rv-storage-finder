@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RV Storage Finder | Secure & Affordable Storage Solutions</title>
+  <meta name="description" content="Find the perfect RV storage near you with our comprehensive directory of secure, affordable storage facilities.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            secondary: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+            },
+            accent: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          },
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-in-out',
+            'slide-up': 'slideUp 0.5s ease-out',
+            'pulse-slow': 'pulse 3s infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --header-height: 80px;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: calc(var(--header-height) + 20px);
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    
+    .dark ::-webkit-scrollbar-track {
+      background: #2d3748;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #4a5568;
+    }
+    
+    /* Map styles */
+    #map {
+      height: 500px;
+      z-index: 1;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Modal styles */
+    .modal-overlay {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    
+    .dark .modal-content {
+      background: #1e293b;
+    }
+    
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    /* Gallery slider */
+    .gallery-slider {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    
+    .gallery-slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    
+    .gallery-slide.active {
+      opacity: 1;
+    }
+    
+    /* Testimonial slider */
+    .testimonial-slide {
+      position: absolute;
+      width: 100%;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    
+    .testimonial-slide.active {
+      opacity: 1;
+    }
+    
+    /* Rating stars */
+    .rating-stars {
+      color: #fbbf24;
+    }
+    
+    /* Step indicator */
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    
+    .step-indicator::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #e2e8f0;
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+    
+    .dark .step-indicator::before {
+      background: #334155;
+    }
+    
+    .step {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      font-weight: 600;
+      color: #64748b;
+    }
+    
+    .dark .step {
+      background: #334155;
+      color: #94a3b8;
+    }
+    
+    .step.active {
+      background: #0ea5e9;
+      color: white;
+    }
+    
+    .step.completed {
+      background: #22c55e;
+      color: white;
+    }
+    
+    /* Custom checkbox */
+    .custom-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #cbd5e1;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .custom-checkbox.checked {
+      background: #0ea5e9;
+      border-color: #0ea5e9;
+    }
+    
+    .custom-checkbox.checked::after {
+      content: '\f00c';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: white;
+      font-size: 12px;
+    }
+    
+    /* Animation classes */
+    .animate-fade-in {
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    .animate-slide-up {
+      animation: slideUp 0.8s ease-out forwards;
+    }
+    
+    .delay-100 {
+      animation-delay: 0.1s;
+    }
+    
+    .delay-200 {
+      animation-delay: 0.2s;
+    }
+    
+    .delay-300 {
+      animation-delay: 0.3s;
+    }
+    
+    /* Pulse animation for CTA */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .pulse:hover {
+      animation: pulse 1s infinite;
+    }
+    
+    /* Card hover effect */
+    .card-hover {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Dark mode transitions */
+    .dark-transition * {
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans dark-transition dark:bg-gray-900">
+  <!-- Navigation -->
+  <nav class="fixed w-full z-50 bg-white shadow-sm dark:bg-gray-800">
+    <div class="container mx-auto px-4 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <a href="#hero" class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-primary-600 dark:text-primary-400">
+              <path d="M3.375 3C2.339 3 1.5 3.84 1.5 4.875v.75c0 1.036.84 1.875 1.875 1.875h17.25c1.035 0 1.875-.84 1.875-1.875v-.75C22.5 3.839 21.66 3 20.625 3H3.375z" />
+              <path fill-rule="evenodd" d="M3.087 9l.54 9.176A3 3 0 006.62 21h10.757a3 3 0 002.995-2.824L20.913 9H3.087zm6.133 2.845a.75.75 0 011.06 0l1.72 1.72 1.72-1.72a.75.75 0 111.06 1.06l-1.72 1.72 1.72 1.72a.75.75 0 11-1.06 1.06L12 15.685l-1.72 1.72a.75.75 0 11-1.06-1.06l1.72-1.72-1.72-1.72a.75.75 0 010-1.06z" clip-rule="evenodd" />
+            </svg>
+            <span class="ml-2 text-xl font-bold text-gray-800 dark:text-white">RV<span class="text-primary-600 dark:text-primary-400">Finder</span></span>
+          </a>
+        </div>
+        
+        <div class="hidden md:flex items-center space-x-1">
+          <a href="#hero" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Home</a>
+          <a href="#locations" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Locations</a>
+          <a href="#map-section" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Map</a>
+          <a href="#gallery" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Gallery</a>
+          <a href="#testimonials" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Testimonials</a>
+          <a href="#faq" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">FAQ</a>
+          <a href="#contact" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Contact</a>
+          
+          <!-- Dark mode toggle -->
+          <button id="darkModeToggle" class="p-2 rounded-full text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 focus:outline-none transition">
+            <svg id="darkModeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </button>
+          
+          <button onclick="openModal(null)" class="ml-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-md transition">
+            Book Now
+          </button>
+        </div>
+        
+        <!-- Mobile menu button -->
+        <div class="md:hidden flex items-center">
+          <button id="mobileMenuToggle" class="p-2 rounded-md text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 focus:outline-none transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="hidden md:hidden bg-white dark:bg-gray-800 shadow-lg">
+      <div class="px-2 pt-2 pb-3 space-y-1">
+        <a href="#hero" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Home</a>
+        <a href="#locations" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Locations</a>
+        <a href="#map-section" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Map</a>
+        <a href="#gallery" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Gallery</a>
+        <a href="#testimonials" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Testimonials</a>
+        <a href="#faq" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">FAQ</a>
+        <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400 transition">Contact</a>
+        <button onclick="openModal(null)" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition">
+          Book Now
+        </button>
+        <div class="px-3 py-2">
+          <button id="mobileDarkModeToggle" class="flex items-center text-gray-700 dark:text-gray-300">
+            <svg id="mobileDarkModeIcon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <span>Toggle Dark Mode</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="relative pt-24 pb-16 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32 bg-gradient-to-r from-primary-500 to-primary-700 dark:from-primary-600 dark:to-primary-800">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute inset-0 bg-black/30 dark:bg-black/40"></div>
+      <img src="hero-bg.jpg" alt="RV storage facility" class="w-full h-full object-cover">
+    </div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+      <div class="max-w-3xl mx-auto text-center animate-fade-in">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 animate-slide-up">
+          Find Perfect RV Storage <span class="text-accent-300">Near You</span>
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-100 mb-8 animate-slide-up delay-100">
+          Secure, affordable, and convenient storage solutions for your recreational vehicle
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4 animate-slide-up delay-200">
+          <button onclick="openModal(null)" class="px-8 py-4 bg-accent-500 hover:bg-accent-600 text-white font-bold rounded-full transition pulse shadow-lg">
+            Book Storage Now
+          </button>
+          <a href="#locations" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition backdrop-blur-sm border border-white/20">
+            Browse Locations
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 dark:from-gray-900 to-transparent"></div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-16 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Why Choose Our RV Storage?</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">We provide the best storage solutions with top-notch security and convenience</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm hover:shadow-md transition card-hover">
+          <div class="w-14 h-14 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">24/7 Security</h3>
+          <p class="text-gray-600 dark:text-gray-300">Our facilities are monitored around the clock with advanced surveillance systems and on-site personnel.</p>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm hover:shadow-md transition card-hover">
+          <div class="w-14 h-14 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Affordable Rates</h3>
+          <p class="text-gray-600 dark:text-gray-300">Competitive pricing with flexible plans to fit any budget, from short-term to long-term storage needs.</p>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm hover:shadow-md transition card-hover">
+          <div class="w-14 h-14 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Easy Access</h3>
+          <p class="text-gray-600 dark:text-gray-300">Convenient locations with extended access hours to fit your schedule whenever you need your RV.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Locations Section -->
+  <section id="locations" class="py-16 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Featured Storage Locations</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Browse our top-rated RV storage facilities with verified customer reviews</p>
+      </div>
+      
+      <!-- Location Filters -->
+      <div class="mb-8 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex-1">
+            <label for="locationSearch" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Locations</label>
+            <div class="relative">
+              <input type="text" id="locationSearch" placeholder="Search by city, zip, or facility name" class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+              <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label for="locationSort" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
+            <select id="locationSort" class="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-lg dark:bg-gray-700 dark:text-white">
+              <option>Recommended</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
+              <option>Rating: High to Low</option>
+              <option>Distance</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div id="locationCards" class="grid gap-8 grid-cols-1 lg:grid-cols-2">
+        <!-- Location cards will be injected here via JavaScript -->
+      </div>
+      
+      <div class="mt-12 text-center">
+        <button class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition shadow-md">
+          View All Locations
+        </button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Interactive Map Section -->
+  <section id="map-section" class="py-16 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Find Storage on the Map</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Explore our storage locations visually and find the most convenient option for you</p>
+      </div>
+      
+      <div class="relative">
+        <!-- Map controls -->
+        <div class="absolute top-4 right-4 z-10 flex flex-col gap-2">
+          <button id="toggleMapLayer" class="bg-white dark:bg-gray-700 text-gray-800 dark:text-white p-2 rounded shadow hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </button>
+          <button id="locateMe" class="bg-white dark:bg-gray-700 text-gray-800 dark:text-white p-2 rounded shadow hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
+        
+        <div id="map"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery Section -->
+  <section id="gallery" class="py-16 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Our Storage Facilities</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Take a virtual tour of our top-rated RV storage locations</p>
+      </div>
+      
+      <div class="relative h-96 md:h-[500px] rounded-xl overflow-hidden shadow-lg gallery-slider">
+        <div class="gallery-slide active">
+          <img src="gallery1.jpg" alt="RV storage facility" class="w-full h-full object-cover">
+        </div>
+        <div class="gallery-slide">
+          <img src="gallery2.jpg" alt="Secure RV parking" class="w-full h-full object-cover">
+        </div>
+        <div class="gallery-slide">
+          <img src="gallery3.jpg" alt="Indoor RV storage" class="w-full h-full object-cover">
+        </div>
+        
+        <!-- Navigation arrows -->
+        <button id="galleryPrev" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-2 rounded-full backdrop-blur-sm transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button id="galleryNext" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-2 rounded-full backdrop-blur-sm transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        
+        <!-- Indicators -->
+        <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+          <button class="gallery-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-index="0"></button>
+          <button class="gallery-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-index="1"></button>
+          <button class="gallery-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition" data-index="2"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section id="testimonials" class="py-16 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">What Our Customers Say</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Trusted by thousands of RV owners across the country</p>
+      </div>
+      
+      <div class="max-w-3xl mx-auto relative h-64">
+        <div class="testimonial-slide active">
+          <div class="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-sm">
+            <div class="flex items-center mb-4">
+              <div class="rating-stars mr-2">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">5.0</span>
+            </div>
+            <p class="text-lg italic text-gray-700 dark:text-gray-300 mb-6">"I've used several RV storage services before, but none compare to the convenience and security of RVFinder. The online booking is seamless and the facilities are always clean and well-maintained."</p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden mr-4">
+                <img src="https://randomuser.me/api/portraits/women/43.jpg" alt="Sarah J." class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800 dark:text-white">Sarah J.</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">RV Owner for 8 years</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-slide">
+          <div class="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-sm">
+            <div class="flex items-center mb-4">
+              <div class="rating-stars mr-2">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">5.0</span>
+            </div>
+            <p class="text-lg italic text-gray-700 dark:text-gray-300 mb-6">"The map feature helped me find a storage facility just 10 minutes from my home. The price was reasonable and the staff were incredibly helpful when I needed to access my RV outside normal hours."</p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden mr-4">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Michael T." class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800 dark:text-white">Michael T.</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Seasonal RV User</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-slide">
+          <div class="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-sm">
+            <div class="flex items-center mb-4">
+              <div class="rating-stars mr-2">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+              </div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">4.5</span>
+            </div>
+            <p class="text-lg italic text-gray-700 dark:text-gray-300 mb-6">"As a full-time RVer, I need reliable storage when visiting family. RVFinder makes it easy to book short-term spots wherever I'm traveling. The customer service is outstanding!"</p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden mr-4">
+                <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Jennifer L." class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800 dark:text-white">Jennifer L.</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Full-time RVer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Navigation arrows -->
+        <button id="testimonialPrev" class="absolute -left-12 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 p-2 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button id="testimonialNext" class="absolute -right-12 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 p-2 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="py-16 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Frequently Asked Questions</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Find answers to common questions about RV storage</p>
+      </div>
+      
+      <div class="max-w-3xl mx-auto">
+        <div class="space-y-4">
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button class="faq-question w-full px-6 py-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex justify-between items-center">
+              <span class="font-medium text-gray-800 dark:text-white">What size RV can I store at your facilities?</span>
+              <svg class="faq-icon w-5 h-5 text-gray-500 dark:text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="faq-answer px-6 py-4 bg-white dark:bg-gray-700 hidden">
+              <p class="text-gray-600 dark:text-gray-300">Our facilities can accommodate RVs of all sizes, from small camper vans (under 20 feet) to large Class A motorhomes (up to 45 feet). Each location has different size limitations, so please check the specific facility details or contact us for oversized RV storage options.</p>
+            </div>
+          </div>
+          
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button class="faq-question w-full px-6 py-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex justify-between items-center">
+              <span class="font-medium text-gray-800 dark:text-white">How does billing and payment work?</span>
+              <svg class="faq-icon w-5 h-5 text-gray-500 dark:text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="faq-answer px-6 py-4 bg-white dark:bg-gray-700 hidden">
+              <p class="text-gray-600 dark:text-gray-300">We offer flexible billing options. You can pay monthly, quarterly, or annually. Payments are automatically charged to your credit card on file. We accept all major credit cards and also offer ACH bank transfers. You'll receive email receipts for all payments, and can view your payment history in your account dashboard.</p>
+            </div>
+          </div>
+          
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button class="faq-question w-full px-6 py-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex justify-between items-center">
+              <span class="font-medium text-gray-800 dark:text-white">What security measures are in place?</span>
+              <svg class="faq-icon w-5 h-5 text-gray-500 dark:text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="faq-answer px-6 py-4 bg-white dark:bg-gray-700 hidden">
+              <p class="text-gray-600 dark:text-gray-300">All our facilities feature 24/7 video surveillance, perimeter fencing, coded gate access, and well-lit premises. Many locations also have on-site managers and regular security patrols. We take the security of your RV seriously and continuously invest in upgrading our security systems.</p>
+            </div>
+          </div>
+          
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button class="faq-question w-full px-6 py-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex justify-between items-center">
+              <span class="font-medium text-gray-800 dark:text-white">Can I access my RV at any time?</span>
+              <svg class="faq-icon w-5 h-5 text-gray-500 dark:text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="faq-answer px-6 py-4 bg-white dark:bg-gray-700 hidden">
+              <p class="text-gray-600 dark:text-gray-300">Most facilities offer 24/7 access with your personalized gate code. Some locations may have restricted hours for indoor storage units. Always check with your specific facility for their access hours. For after-hours access needs, many locations can arrange special access with advance notice.</p>
+            </div>
+          </div>
+          
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button class="faq-question w-full px-6 py-4 text-left bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex justify-between items-center">
+              <span class="font-medium text-gray-800 dark:text-white">What's your cancellation policy?</span>
+              <svg class="faq-icon w-5 h-5 text-gray-500 dark:text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="faq-answer px-6 py-4 bg-white dark:bg-gray-700 hidden">
+              <p class="text-gray-600 dark:text-gray-300">We offer flexible cancellation with 30 days notice for monthly contracts. There are no long-term commitments - you can cancel anytime after your initial term with proper notice. For prepaid annual contracts, we offer prorated refunds. Please review your specific contract terms or contact our customer service for details.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+          <p class="text-gray-600 dark:text-gray-300 mb-4">Still have questions?</p>
+          <a href="#contact" class="inline-block px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition shadow-md">
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-16 bg-gradient-to-r from-primary-500 to-primary-700 dark:from-primary-600 dark:to-primary-800">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Store Your RV?</h2>
+        <p class="text-xl text-gray-100 mb-8">Join thousands of satisfied RV owners who trust us with their vehicles</p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <button onclick="openModal(null)" class="px-8 py-4 bg-white hover:bg-gray-100 text-primary-600 font-bold rounded-full transition shadow-lg">
+            Book Storage Now
+          </button>
+          <a href="tel:+18005551234" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition backdrop-blur-sm border border-white/20">
+            <i class="fas fa-phone-alt mr-2"></i> Call: (800) 555-1234
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-16 bg-gray-50 dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Contact Us</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Have questions or need assistance? Our team is here to help</p>
+      </div>
+      
+      <div class="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm">
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Get in Touch</h3>
+          <form id="contactForm">
+            <div class="mb-4">
+              <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+              <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white" required>
+            </div>
+            <div class="mb-4">
+              <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white" required>
+            </div>
+            <div class="mb-4">
+              <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
+              <select id="subject" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white" required>
+                <option value="">Select a subject</option>
+                <option>General Inquiry</option>
+                <option>Booking Question</option>
+                <option>Billing Question</option>
+                <option>Facility Feedback</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+              <textarea id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white" required></textarea>
+            </div>
+            <button type="submit" class="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition shadow-md">
+              Send Message
+            </button>
+          </form>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-sm">
+          <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Contact Information</h3>
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0 bg-primary-100 dark:bg-primary-900 rounded-lg p-3 mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-800 dark:text-white">Phone</h4>
+                <p class="text-gray-600 dark:text-gray-300">(800) 555-1234</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Mon-Fri, 8am-6pm PST</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="flex-shrink-0 bg-primary-100 dark:bg-primary-900 rounded-lg p-3 mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-800 dark:text-white">Email</h4>
+                <p class="text-gray-600 dark:text-gray-300">support@rvfinder.com</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Typically respond within 24 hours</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="flex-shrink-0 bg-primary-100 dark:bg-primary-900 rounded-lg p-3 mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-800 dark:text-white">Corporate Office</h4>
+                <p class="text-gray-600 dark:text-gray-300">1234 Storage Way</p>
+                <p class="text-gray-600 dark:text-gray-300">San Diego, CA 92101</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-6">
+            <h4 class="font-medium text-gray-800 dark:text-white mb-2">Follow Us</h4>
+            <div class="flex space-x-4">
+              <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-600 dark:hover:text-primary-400 transition">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-600 dark:hover:text-primary-400 transition">
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-600 dark:hover:text-primary-400 transition">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="#" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-600 dark:hover:text-primary-400 transition">
+                <i class="fab fa-youtube"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-gray-300 py-12">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">RVFinder</h3>
+          <p class="mb-4">The easiest way to find secure, affordable RV storage across the country.</p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-gray-400 hover:text-white transition">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition">
+              <i class="fab fa-instagram"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">Quick Links</h3>
+          <ul class="space-y-2">
+            <li><a href="#hero" class="hover:text-white transition">Home</a></li>
+            <li><a href="#locations" class="hover:text-white transition">Locations</a></li>
+            <li><a href="#map-section" class="hover:text-white transition">Map</a></li>
+            <li><a href="#gallery" class="hover:text-white transition">Gallery</a></li>
+            <li><a href="#faq" class="hover:text-white transition">FAQ</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">Company</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="hover:text-white transition">About Us</a></li>
+            <li><a href="#" class="hover:text-white transition">Careers</a></li>
+            <li><a href="#" class="hover:text-white transition">Blog</a></li>
+            <li><a href="#" class="hover:text-white transition">Press</a></li>
+            <li><a href="#" class="hover:text-white transition">Partners</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">Legal</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
+            <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="#" class="hover:text-white transition">Cookie Policy</a></li>
+            <li><a href="#" class="hover:text-white transition">GDPR</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p>&copy; 2025 RVFinder. All rights reserved. Finny LLC</p>
+        <div class="mt-4 md:mt-0">
+          <img src="https://via.placeholder.com/200x50?text=Payment+Methods" alt="Payment methods" class="h-8">
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Booking Modal -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal-content">
+      <div class="p-6">
+        <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        <div id="modalBody">
+          <!-- Booking form will be injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script>
+    // Storage locations data with enhanced information
+    const storageLocations = [
+      { 
+        id: 1, 
+        name: "Coastal RV Storage", 
+        address: "123 Ocean View Dr, San Diego, CA 92109",
+        zip: "92109", 
+        coords: [32.7986, -117.2431], 
+        baseRate: 15, 
+        amenities: ["24/7 Security", "Gated Access", "Power Hookup", "On-site Manager", "Wash Station"], 
+        description: "Premium outdoor storage just minutes from the beach with full security and easy freeway access. Perfect for seasonal storage with flexible terms.",
+        rating: 4.8,
+        reviewCount: 124,
+        distance: "2.3 miles",
+        images: ["gallery1.jpg", "gallery2.jpg", "gallery3.jpg"],
+        features: {
+          indoor: false,
+          covered: false,
+          climateControlled: false,
+          maxLength: 45,
+          width: 12,
+          height: 14
+        }
+      },
+      { 
+        id: 2, 
+        name: "Mission Valley RV Lot", 
+        address: "456 Storage Way, San Diego, CA 92108",
+        zip: "92108", 
+        coords: [32.7679, -117.1426], 
+        baseRate: 20, 
+        amenities: ["Covered Spots", "Security Cameras", "Lighted Lot", "Monthly Discounts"], 
+        description: "Affordable covered parking with modern amenities in the heart of Mission Valley. Convenient access to I-8 and I-15.",
+        rating: 4.5,
+        reviewCount: 87,
+        distance: "4.1 miles",
+        images: ["gallery2.jpg", "gallery3.jpg", "gallery1.jpg"],
+        features: {
+          indoor: false,
+          covered: true,
+          climateControlled: false,
+          maxLength: 40,
+          width: 12,
+          height: 13
+        }
+      },
+      { 
+        id: 3, 
+        name: "North County Storage", 
+        address: "789 Storage Ln, Encinitas, CA 92024",
+        zip: "92024", 
+        coords: [33.0448, -117.2936], 
+        baseRate: 25, 
+        amenities: ["Indoor Storage", "Full Service Detailing", "24/7 Access", "Battery Maintenance"], 
+        description: "High-end indoor storage facility with additional services available. Ideal for luxury RVs needing climate-controlled protection.",
+        rating: 4.9,
+        reviewCount: 56,
+        distance: "18.7 miles",
+        images: ["gallery3.jpg", "gallery1.jpg", "gallery2.jpg"],
+        features: {
+          indoor: true,
+          covered: true,
+          climateControlled: true,
+          maxLength: 42,
+          width: 14,
+          height: 14
+        }
+      },
+      { 
+        id: 4, 
+        name: "Lakeside RV Haven", 
+        address: "101 Lakeview Rd, Lakeside, CA 92040",
+        zip: "92040", 
+        coords: [32.8562, -116.9223], 
+        baseRate: 18, 
+        amenities: ["Lake View", "Electric Hookups", "Dump Station", "Propane Fill"], 
+        description: "Scenic storage location with beautiful lake views and full hookup availability for pre-trip preparations.",
+        rating: 4.7,
+        reviewCount: 42,
+        distance: "22.5 miles",
+        images: ["gallery1.jpg", "gallery3.jpg", "gallery2.jpg"],
+        features: {
+          indoor: false,
+          covered: false,
+          climateControlled: false,
+          maxLength: 45,
+          width: 15,
+          height: 14
+        }
+      },
+      { 
+        id: 5, 
+        name: "El Cajon Parking", 
+        address: "202 Main St, El Cajon, CA 92020",
+        zip: "92020", 
+        coords: [32.7948, -116.9625], 
+        baseRate: 14, 
+        amenities: ["Open Air", "Freeway Access", "Affordable Rates", "No Long-term Contracts"], 
+        description: "Budget-friendly outdoor parking with easy in-and-out access. Perfect for short-term storage needs.",
+        rating: 4.2,
+        reviewCount: 35,
+        distance: "15.2 miles",
+        images: ["gallery2.jpg", "gallery1.jpg", "gallery3.jpg"],
+        features: {
+          indoor: false,
+          covered: false,
+          climateControlled: false,
+          maxLength: 50,
+          width: 15,
+          height: 15
+        }
+      },
+      { 
+        id: 6, 
+        name: "Downtown Secure Storage", 
+        address: "303 Highrise Blvd, San Diego, CA 92101",
+        zip: "92101", 
+        coords: [32.7153, -117.1619], 
+        baseRate: 28, 
+        amenities: ["Indoor Facility", "24/7 Security", "Valet Parking", "Car Wash Service"], 
+        description: "Premium downtown storage with white-glove service. Includes complimentary wash with monthly storage.",
+        rating: 4.9,
+        reviewCount: 112,
+        distance: "1.5 miles",
+        images: ["gallery3.jpg", "gallery2.jpg", "gallery1.jpg"],
+        features: {
+          indoor: true,
+          covered: true,
+          climateControlled: true,
+          maxLength: 38,
+          width: 12,
+          height: 12
+        }
+      }
+    ];
+    
+    const rvSizes = [
+      { id: "small", name: "Small (12-20 ft)", multiplier: 1, description: "Class B, small trailers, pop-ups" },
+      { id: "medium", name: "Medium (21-30 ft)", multiplier: 1.2, description: "Class C, medium trailers" },
+      { id: "large", name: "Large (31-40 ft)", multiplier: 1.5, description: "Class A, large trailers" },
+      { id: "xl", name: "Extra Large (41+ ft)", multiplier: 2, description: "Large Class A, fifth wheels" }
+    ];
+    
+    const amenitiesList = [
+      "24/7 Access",
+      "Gated Facility",
+      "Security Cameras",
+      "On-site Staff",
+      "Lighted Lot",
+      "Covered Parking",
+      "Indoor Storage",
+      "Climate Controlled",
+      "Power Hookup",
+      "Water Access",
+      "Dump Station",
+      "Wash Area",
+      "Propane Fill",
+      "Battery Maintenance",
+      "Tire Service",
+      "Valet Parking"
+    ];
+
+    // DOM Elements
+    const htmlElement = document.documentElement;
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const darkModeIcon = document.getElementById('darkModeIcon');
+    const mobileDarkModeToggle = document.getElementById('mobileDarkModeToggle');
+    const mobileDarkModeIcon = document.getElementById('mobileDarkModeIcon');
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const closeModal = document.getElementById('closeModal');
+    const modalBody = document.getElementById('modalBody');
+    const locationCardsContainer = document.getElementById('locationCards');
+    const locationSearch = document.getElementById('locationSearch');
+    const locationSort = document.getElementById('locationSort');
+    const contactForm = document.getElementById('contactForm');
+    
+    // Gallery elements
+    const gallerySlides = document.querySelectorAll('.gallery-slide');
+    const galleryIndicators = document.querySelectorAll('.gallery-indicator');
+    const galleryPrev = document.getElementById('galleryPrev');
+    const galleryNext = document.getElementById('galleryNext');
+    
+    // Testimonial elements
+    const testimonialSlides = document.querySelectorAll('.testimonial-slide');
+    const testimonialPrev = document.getElementById('testimonialPrev');
+    const testimonialNext = document.getElementById('testimonialNext');
+    
+    // FAQ elements
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    
+    // Initialize dark mode
+    function initDarkMode() {
+      const savedMode = localStorage.getItem('darkMode');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedMode === 'dark' || (!savedMode && systemPrefersDark)) {
+        htmlElement.classList.add('dark');
+        darkModeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+        mobileDarkModeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+      }
+    }
+    
+    // Toggle dark mode
+    function toggleDarkMode() {
+      htmlElement.classList.toggle('dark');
+      
+      if (htmlElement.classList.contains('dark')) {
+        darkModeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+        mobileDarkModeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+        localStorage.setItem('darkMode', 'dark');
+      } else {
+        darkModeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+        mobileDarkModeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+        localStorage.setItem('darkMode', 'light');
+      }
+    }
+    
+    // Toggle mobile menu
+    function toggleMobileMenu() {
+      mobileMenu.classList.toggle('hidden');
+    }
+    
+    // Open modal
+    function openModal(locId, step = 1) {
+      let loc = locId ? storageLocations.find(item => item.id === locId) : null;
+      
+      // Reset scroll position
+      modalBody.scrollTop = 0;
+      
+      // Show modal overlay
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = "hidden";
+      
+      // Set modal content based on current step
+      if (step === 1) {
+        renderStep1(loc);
+      } else if (step === 2) {
+        renderStep2(loc);
+      } else if (step === 3) {
+        renderStep3(loc);
+      }
+    }
+    
+    // Close modal
+    function closeModalHandler() {
+      modalOverlay.classList.remove('active');
+      document.body.style.overflow = "";
+    }
+    
+    // Render step 1 of booking (select location if not specified)
+    function renderStep1(loc) {
+      if (loc) {
+        // If location is specified, skip to step 2
+        renderStep2(loc);
+        return;
+      }
+      
+      let options = storageLocations.map(item => `
+        <div class="location-option p-4 border border-gray-200 dark:border-gray-600 rounded-lg mb-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition" data-id="${item.id}">
+          <div class="flex items-start">
+            <div class="flex-shrink-0 w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden mr-4">
+              <img src="${item.images[0]}" alt="${item.name}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800 dark:text-white">${item.name}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">${item.address}</p>
+              <div class="flex items-center mb-1">
+                <div class="rating-stars mr-2">
+                  ${renderStars(item.rating)}
+                </div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">${item.rating} (${item.reviewCount} reviews)</span>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-300">${item.distance} away</p>
+            </div>
+            <div class="text-right">
+              <p class="font-semibold text-primary-600 dark:text-primary-400">$${item.baseRate}<span class="text-sm font-normal text-gray-500 dark:text-gray-400">/day</span></p>
+              <button class="mt-2 px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium rounded transition">
+                Select
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      modalBody.innerHTML = `
+        <div class="step-indicator mb-8">
+          <div class="step active">1</div>
+          <div class="step">2</div>
+          <div class="step">3</div>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Select a Storage Location</h2>
+        
+        <div class="mb-6">
+          <div class="relative">
+            <input type="text" id="modalLocationSearch" placeholder="Search locations..." class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="location-options">
+          ${options}
+        </div>
+      `;
+      
+      // Add event listeners to location options
+      document.querySelectorAll('.location-option').forEach(option => {
+        option.addEventListener('click', function() {
+          const locId = parseInt(this.getAttribute('data-id'));
+          const selectedLoc = storageLocations.find(item => item.id === locId);
+          renderStep2(selectedLoc);
+        });
+      });
+    }
+    
+    // Render step 2 of booking (select dates and RV size)
+    function renderStep2(loc) {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const todayFormatted = today.toISOString().split('T')[0];
+      const tomorrowFormatted = tomorrow.toISOString().split('T')[0];
+      
+      const sizeOptions = rvSizes.map(size => `
+        <div class="rv-size-option p-4 border border-gray-200 dark:border-gray-600 rounded-lg mb-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition" data-id="${size.id}">
+          <div class="flex items-center">
+            <div class="custom-checkbox mr-3"></div>
+            <div class="flex-1">
+              <h4 class="font-medium text-gray-800 dark:text-white">${size.name}</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-300">${size.description}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      modalBody.innerHTML = `
+        <div class="step-indicator mb-8">
+          <div class="step completed">1</div>
+          <div class="step active">2</div>
+          <div class="step">3</div>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Booking Details</h2>
+        
+        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
+          <h3 class="font-semibold text-gray-800 dark:text-white mb-2">${loc.name}</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">${loc.address}</p>
+          <div class="flex items-center">
+            <div class="rating-stars mr-2">
+              ${renderStars(loc.rating)}
+            </div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">${loc.rating} (${loc.reviewCount} reviews)</span>
+          </div>
+        </div>
+        
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">RV Size</label>
+          <div class="rv-size-options">
+            ${sizeOptions}
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label for="checkin" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Check-in Date</label>
+            <input type="date" id="checkin" min="${todayFormatted}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+          </div>
+          <div>
+            <label for="checkout" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Check-out Date</label>
+            <input type="date" id="checkout" min="${tomorrowFormatted}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+          </div>
+        </div>
+        
+        <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-lg mb-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Estimated Total</p>
+              <p id="priceDisplay" class="text-2xl font-bold text-primary-600 dark:text-primary-400">$0</p>
+            </div>
+            <p id="priceDetails" class="text-sm text-gray-500 dark:text-gray-400"></p>
+          </div>
+        </div>
+        
+        <div class="flex justify-between">
+          <button onclick="renderStep1(null)" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
+            Back
+          </button>
+          <button id="continueToStep3" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition shadow-md" disabled>
+            Continue
+          </button>
+        </div>
+      `;
+      
+      // Add event listeners to RV size options
+      document.querySelectorAll('.rv-size-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // Remove selected class from all options
+          document.querySelectorAll('.rv-size-option').forEach(opt => {
+            opt.classList.remove('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
+            opt.querySelector('.custom-checkbox').classList.remove('checked');
+          });
+          
+          // Add selected class to clicked option
+          this.classList.add('border-primary-500', 'bg-primary-50', 'dark:bg-primary-900/20');
+          this.querySelector('.custom-checkbox').classList.add('checked');
+          
+          // Enable continue button if dates are selected
+          if (document.getElementById('checkin').value && document.getElementById('checkout').value) {
+            document.getElementById('continueToStep3').disabled = false;
+          }
+          
+          // Calculate price
+          calculatePrice(loc);
+        });
+      });
+      
+      // Add event listeners to date inputs
+      document.getElementById('checkin').addEventListener('change', function() {
+        const checkout = document.getElementById('checkout');
+        checkout.min = this.value;
+        
+        if (checkout.value && checkout.value < this.value) {
+          checkout.value = '';
+        }
+        
+        // Calculate price if size is selected
+        if (document.querySelector('.rv-size-option .custom-checkbox.checked')) {
+          calculatePrice(loc);
+        }
+      });
+      
+      document.getElementById('checkout').addEventListener('change', function() {
+        // Calculate price if size is selected
+        if (document.querySelector('.rv-size-option .custom-checkbox.checked')) {
+          calculatePrice(loc);
+        }
+      });
+      
+      // Add event listener to continue button
+      document.getElementById('continueToStep3').addEventListener('click', function() {
+        renderStep3(loc);
+      });
+    }
+    
+    // Render step 3 of booking (confirm and pay)
+    function renderStep3(loc) {
+      const checkin = document.getElementById('checkin').value;
+      const checkout = document.getElementById('checkout').value;
+      const selectedSize = document.querySelector('.rv-size-option .custom-checkbox.checked').parentElement.parentElement;
+      const sizeId = selectedSize.getAttribute('data-id');
+      const size = rvSizes.find(s => s.id === sizeId);
+      
+      const checkinDate = new Date(checkin);
+      const checkoutDate = new Date(checkout);
+      const diffTime = Math.abs(checkoutDate - checkinDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const total = diffDays * loc.baseRate * size.multiplier;
+      
+      modalBody.innerHTML = `
+        <div class="step-indicator mb-8">
+          <div class="step completed">1</div>
+          <div class="step completed">2</div>
+          <div class="step active">3</div>
+        </div>
+        
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Confirm Your Booking</h2>
+        
+        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
+          <h3 class="font-semibold text-gray-800 dark:text-white mb-2">${loc.name}</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mb-1">${loc.address}</p>
+          <div class="flex items-center mb-3">
+            <div class="rating-stars mr-2">
+              ${renderStars(loc.rating)}
+            </div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">${loc.rating} (${loc.reviewCount} reviews)</span>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-3">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Check-in</p>
+              <p class="font-medium text-gray-800 dark:text-white">${formatDate(checkin)}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Check-out</p>
+              <p class="font-medium text-gray-800 dark:text-white">${formatDate(checkout)}</p>
+            </div>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">RV Size</p>
+            <p class="font-medium text-gray-800 dark:text-white">${size.name}</p>
+          </div>
+        </div>
+        
+        <div class="mb-6">
+          <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+          <input type="text" id="bookingName" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+        </div>
+        
+        <div class="mb-6">
+          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+          <input type="email" id="bookingEmail" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+        </div>
+        
+        <div class="mb-6">
+          <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
+          <input type="tel" id="bookingPhone" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white" required>
+        </div>
+        
+        <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-lg mb-6">
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-gray-600 dark:text-gray-300">Subtotal (${diffDays} days)</p>
+            <p class="text-gray-800 dark:text-white">$${(loc.baseRate * diffDays).toFixed(2)}</p>
+          </div>
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-gray-600 dark:text-gray-300">Size multiplier (${size.name})</p>
+            <p class="text-gray-800 dark:text-white">${size.multiplier}x</p>
+          </div>
+          <div class="border-t border-gray-200 dark:border-gray-600 my-2"></div>
+          <div class="flex justify-between items-center">
+            <p class="font-semibold text-gray-800 dark:text-white">Total</p>
+            <p class="text-2xl font-bold text-primary-600 dark:text-primary-400">$${total.toFixed(2)}</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start mb-6">
+          <input type="checkbox" id="termsAgree" class="mt-1 mr-2">
+          <label for="termsAgree" class="text-sm text-gray-600 dark:text-gray-300">I agree to the <a href="#" class="text-primary-600 dark:text-primary-400 hover:underline">Terms of Service</a> and <a href="#" class="text-primary-600 dark:text-primary-400 hover:underline">Cancellation Policy</a></label>
+        </div>
+        
+        <div class="flex justify-between">
+          <button onclick="renderStep2(${loc.id})" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
+            Back
+          </button>
+          <button id="submitBooking" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition shadow-md flex items-center">
+            <span>Complete Booking</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+      `;
+      
+      // Add event listener to submit button
+      document.getElementById('submitBooking').addEventListener('click', function() {
+        if (!document.getElementById('termsAgree').checked) {
+          alert('Please agree to the Terms of Service and Cancellation Policy');
+          return;
+        }
+        
+        if (!document.getElementById('bookingName').value || 
+            !document.getElementById('bookingEmail').value || 
+            !document.getElementById('bookingPhone').value) {
+          alert('Please fill in all required fields');
+          return;
+        }
+        
+        // Show confirmation
+        renderConfirmation(loc, checkin, checkout, size.name, total);
+      });
+    }
+    
+    // Render booking confirmation
+    function renderConfirmation(loc, checkin, checkout, size, total) {
+      modalBody.innerHTML = `
+        <div class="text-center py-8">
+          <div class="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Booking Confirmed!</h2>
+          <p class="text-gray-600 dark:text-gray-300 mb-6">Your reservation at <span class="font-semibold">${loc.name}</span> has been successfully booked. A confirmation has been sent to your email.</p>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6 text-left">
+            <h3 class="font-semibold text-gray-800 dark:text-white mb-4">Booking Details</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Facility</p>
+                <p class="font-medium text-gray-800 dark:text-white">${loc.name}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Address</p>
+                <p class="font-medium text-gray-800 dark:text-white">${loc.address}</p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Check-in</p>
+                <p class="font-medium text-gray-800 dark:text-white">${formatDate(checkin)}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Check-out</p>
+                <p class="font-medium text-gray-800 dark:text-white">${formatDate(checkout)}</p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">RV Size</p>
+                <p class="font-medium text-gray-800 dark:text-white">${size}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Total</p>
+                <p class="font-medium text-gray-800 dark:text-white">$${total}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <button onclick="closeModalHandler()" class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition shadow-md">
+              Done
+            </button>
+            <button class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">
+              <i class="fas fa-print mr-2"></i> Print Receipt
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Calculate booking price
+    function calculatePrice(loc) {
+      const checkinVal = document.getElementById('checkin').value;
+      const checkoutVal = document.getElementById('checkout').value;
+      const selectedSize = document.querySelector('.rv-size-option .custom-checkbox.checked');
+      
+      if (!selectedSize || !checkinVal || !checkoutVal) {
+        document.getElementById('priceDisplay').textContent = '$0';
+        document.getElementById('priceDetails').textContent = '';
+        document.getElementById('continueToStep3').disabled = true;
+        return;
+      }
+      
+      const sizeId = selectedSize.parentElement.parentElement.getAttribute('data-id');
+      const size = rvSizes.find(s => s.id === sizeId);
+      
+      const checkinDate = new Date(checkinVal);
+      const checkoutDate = new Date(checkoutVal);
+      
+      if (checkoutDate <= checkinDate) {
+        document.getElementById('priceDisplay').textContent = '$0';
+        document.getElementById('priceDetails').textContent = 'Check-out date must be after check-in';
+        document.getElementById('continueToStep3').disabled = true;
+        return;
+      }
+      
+      const diffTime = Math.abs(checkoutDate - checkinDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const total = diffDays * loc.baseRate * size.multiplier;
+      
+      document.getElementById('priceDisplay').textContent = `$${total.toFixed(2)}`;
+      document.getElementById('priceDetails').textContent = `${diffDays} days × $${loc.baseRate}/day × ${size.multiplier}x size`;
+      document.getElementById('continueToStep3').disabled = false;
+    }
+    
+    // Render location cards
+    function renderLocationCards(locations = storageLocations) {
+      locationCardsContainer.innerHTML = locations.map(loc => `
+        <div class="bg-white dark:bg-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition card-hover">
+          <div class="relative h-48">
+            <img src="${loc.images[0]}" alt="${loc.name}" class="w-full h-full object-cover">
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <h3 class="text-xl font-bold text-white">${loc.name}</h3>
+              <p class="text-sm text-gray-200">${loc.distance} away</p>
+            </div>
+            <div class="absolute top-4 right-4 bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 px-3 py-1 rounded-full text-sm font-semibold shadow-sm">
+              $${loc.baseRate}/day
+            </div>
+          </div>
+          
+          <div class="p-6">
+            <div class="flex items-center mb-3">
+              <div class="rating-stars mr-2">
+                ${renderStars(loc.rating)}
+              </div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">${loc.rating} (${loc.reviewCount} reviews)</span>
+            </div>
+            
+            <p class="text-gray-600 dark:text-gray-300 mb-4">${loc.description}</p>
+            
+            <div class="flex flex-wrap gap-2 mb-4">
+              ${loc.amenities.slice(0, 4).map(amenity => `
+                <span class="text-xs bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded">${amenity}</span>
+              `).join('')}
+              ${loc.amenities.length > 4 ? `<span class="text-xs bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-2 py-1 rounded">+${loc.amenities.length - 4} more</span>` : ''}
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <button onclick="openModal(${loc.id})" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition">
+                Book Now
+              </button>
+              <button class="p-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Render stars for ratings
+    function renderStars(rating) {
+      const fullStars = Math.floor(rating);
+      const hasHalfStar = rating % 1 >= 0.5;
+      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+      
+      let stars = '';
+      
+      for (let i = 0; i < fullStars; i++) {
+        stars += '<i class="fas fa-star"></i>';
+      }
+      
+      if (hasHalfStar) {
+        stars += '<i class="fas fa-star-half-alt"></i>';
+      }
+      
+      for (let i = 0; i < emptyStars; i++) {
+        stars += '<i class="far fa-star"></i>';
+      }
+      
+      return stars;
+    }
+    
+    // Format date for display
+    function formatDate(dateString) {
+      const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('en-US', options);
+    }
+    
+    // Initialize gallery slider
+    function initGallerySlider() {
+      let currentSlide = 0;
+      const totalSlides = gallerySlides.length;
+      
+      function showSlide(index) {
+        gallerySlides.forEach(slide => slide.classList.remove('active'));
+        galleryIndicators.forEach(indicator => indicator.classList.remove('bg-white'));
+        
+        gallerySlides[index].classList.add('active');
+        galleryIndicators[index].classList.add('bg-white');
+        currentSlide = index;
+      }
+      
+      function nextSlide() {
+        const newIndex = (currentSlide + 1) % totalSlides;
+        showSlide(newIndex);
+      }
+      
+      function prevSlide() {
+        const newIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+        showSlide(newIndex);
+      }
+      
+      // Auto-advance slides
+      let slideInterval = setInterval(nextSlide, 5000);
+      
+      // Pause on hover
+      document.querySelector('.gallery-slider').addEventListener('mouseenter', () => {
+        clearInterval(slideInterval);
+      });
+      
+      document.querySelector('.gallery-slider').addEventListener('mouseleave', () => {
+        slideInterval = setInterval(nextSlide, 5000);
+      });
+      
+      // Navigation arrows
+      galleryNext.addEventListener('click', nextSlide);
+      galleryPrev.addEventListener('click', prevSlide);
+      
+      // Indicators
+      galleryIndicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => {
+          showSlide(index);
+        });
+      });
+      
+      // Show first slide
+      showSlide(0);
+    }
+    
+    // Initialize testimonial slider
+    function initTestimonialSlider() {
+      let currentSlide = 0;
+      const totalSlides = testimonialSlides.length;
+      
+      function showSlide(index) {
+        testimonialSlides.forEach(slide => slide.classList.remove('active'));
+        testimonialSlides[index].classList.add('active');
+        currentSlide = index;
+      }
+      
+      function nextSlide() {
+        const newIndex = (currentSlide + 1) % totalSlides;
+        showSlide(newIndex);
+      }
+      
+      function prevSlide() {
+        const newIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+        showSlide(newIndex);
+      }
+      
+      // Auto-advance slides
+      setInterval(nextSlide, 8000);
+      
+      // Navigation arrows
+      testimonialNext.addEventListener('click', nextSlide);
+      testimonialPrev.addEventListener('click', prevSlide);
+      
+      // Show first slide
+      showSlide(0);
+    }
+    
+    // Initialize FAQ accordion
+    function initFAQAccordion() {
+      faqQuestions.forEach(question => {
+        question.addEventListener('click', function() {
+          const answer = this.nextElementSibling;
+          const icon = this.querySelector('.faq-icon');
+          
+          // Toggle answer visibility
+          answer.classList.toggle('hidden');
+          
+          // Toggle icon rotation
+          if (answer.classList.contains('hidden')) {
+            icon.style.transform = 'rotate(0deg)';
+          } else {
+            icon.style.transform = 'rotate(180deg)';
+          }
+        });
+      });
+    }
+    
+    // Initialize map
+    function initMap() {
+      const map = L.map('map', { 
+        scrollWheelZoom: false,
+        dragging: false
+      }).setView([32.7157, -117.1611], 11);
+      
+      // Base layers
+      const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      });
+      
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      });
+      
+      // Add default layer
+      streetLayer.addTo(map);
+      
+      // Marker cluster group
+      const markers = L.markerClusterGroup();
+      
+      // Custom icon
+      const rvIcon = L.divIcon({
+        html: '<div class="rv-marker"><i class="fas fa-trailer"></i></div>',
+        iconSize: [30, 30],
+        className: 'rv-marker-container'
+      });
+      
+      // Add markers to cluster group
+      storageLocations.forEach(loc => {
+        const marker = L.marker(loc.coords, { icon: rvIcon });
+        
+        marker.bindPopup(`
+          <div class="w-64">
+            <h3 class="font-bold text-lg text-gray-800 mb-1">${loc.name}</h3>
+            <p class="text-sm text-gray-600 mb-2">${loc.address}</p>
+            <div class="flex items-center mb-2">
+              <div class="rating-stars text-yellow-400 mr-2">
+                ${renderStars(loc.rating)}
+              </div>
+              <span class="text-sm text-gray-500">${loc.rating}</span>
+            </div>
+            <p class="text-sm text-gray-700 mb-3">${loc.description.substring(0, 100)}...</p>
+            <button onclick="openModal(${loc.id})" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded text-sm">
+              Book Now
+            </button>
+          </div>
+        `);
+        
+        markers.addLayer(marker);
+      });
+      
+      // Add cluster group to map
+      map.addLayer(markers);
+      
+      // Enable interaction on click
+      map.on('click', function() {
+        map.scrollWheelZoom.enable();
+        map.dragging.enable();
+      });
+      
+      // Layer toggle
+      document.getElementById('toggleMapLayer').addEventListener('click', function() {
+        if (map.hasLayer(streetLayer)) {
+          map.removeLayer(streetLayer);
+          map.addLayer(satelliteLayer);
+          this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>';
+        } else {
+          map.removeLayer(satelliteLayer);
+          map.addLayer(streetLayer);
+          this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>';
+        }
+      });
+      
+      // Locate me button
+      document.getElementById('locateMe').addEventListener('click', function() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              map.setView([position.coords.latitude, position.coords.longitude], 13);
+              L.marker([position.coords.latitude, position.coords.longitude], {
+                icon: L.divIcon({
+                  html: '<div class="user-location-marker"><div class="pulse"></div></div>',
+                  iconSize: [20, 20],
+                  className: 'user-location-marker-container'
+                })
+              }).addTo(map).bindPopup('Your location').openPopup();
+            },
+            (error) => {
+              alert('Unable to retrieve your location: ' + error.message);
+            }
+          );
+        } else {
+          alert('Geolocation is not supported by your browser');
+        }
+      });
+    }
+    
+    // Initialize contact form
+    function initContactForm() {
+      contactForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const subject = document.getElementById('subject').value;
+        const message = document.getElementById('message').value;
+        
+        // In a real app, you would send this data to your server
+        console.log('Form submitted:', { name, email, subject, message });
+        
+        // Show success message
+        alert('Thank you for your message! We will get back to you soon.');
+        
+        // Reset form
+        this.reset();
+      });
+    }
+    
+    // Initialize event listeners
+    function initEventListeners() {
+      // Dark mode toggle
+      darkModeToggle.addEventListener('click', toggleDarkMode);
+      mobileDarkModeToggle.addEventListener('click', toggleDarkMode);
+      
+      // Mobile menu toggle
+      mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+      
+      // Close modal
+      closeModal.addEventListener('click', closeModalHandler);
+      modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+          closeModalHandler();
+        }
+      });
+      
+      // Close modal with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+          closeModalHandler();
+        }
+      });
+      
+      // Location search
+      locationSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const filteredLocations = storageLocations.filter(loc => 
+          loc.name.toLowerCase().includes(searchTerm) || 
+          loc.zip.includes(searchTerm) ||
+          loc.address.toLowerCase().includes(searchTerm)
+        );
+        renderLocationCards(filteredLocations);
+      });
+      
+      // Location sort
+      locationSort.addEventListener('change', function() {
+        const sortBy = this.value;
+        let sortedLocations = [...storageLocations];
+        
+        switch(sortBy) {
+          case 'Price: Low to High':
+            sortedLocations.sort((a, b) => a.baseRate - b.baseRate);
+            break;
+          case 'Price: High to Low':
+            sortedLocations.sort((a, b) => b.baseRate - a.baseRate);
+            break;
+          case 'Rating: High to Low':
+            sortedLocations.sort((a, b) => b.rating - a.rating);
+            break;
+          case 'Distance':
+            sortedLocations.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+            break;
+          default:
+            // Default sorting (recommended)
+            break;
+        }
+        
+        renderLocationCards(sortedLocations);
+      });
+    }
+    
+    // Initialize the app
+    function init() {
+      initDarkMode();
+      renderLocationCards();
+      initGallerySlider();
+      initTestimonialSlider();
+      initFAQAccordion();
+      initMap();
+      initContactForm();
+      initEventListeners();
+      
+      // Make openModal available globally
+      window.openModal = openModal;
+    }
+    
+    // Start the app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
