@@ -1840,11 +1840,13 @@
       const markers = L.markerClusterGroup();
       
       // Custom icon
-      const rvIcon = L.divIcon({
-        html: '<div class="rv-marker"><i class="fas fa-trailer"></i></div>',
-        iconSize: [30, 30],
-        className: 'rv-marker-container'
-      });
+       const rvIcon = L.icon({
+      iconUrl: 'rv-pin.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32]
+    });
+      
       
       // Add markers to cluster group
       storageLocations.forEach(loc => {
